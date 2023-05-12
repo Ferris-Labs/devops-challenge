@@ -81,6 +81,6 @@ At a minimum write your response as **response.md** to this repository. You addi
 * include a rough breakdown of which elements you would deliver when along 2 week sprints
 * use our second interview as an opportunity to discuss and clarify any questions
 
-Please commit and push your response at your convenience within the next 7 business days and
-drop us a quick mail at [tom@ferrislabs.net](mailto://tom@ferrislabs.net) as soon as you have pushed.
+Please use a PR to submit your response at your convenience within the next 7 business days and
+drop us a quick mail at [tom@ferrislabs.net](mailto://tom@ferrislabs.net) as soon as you consider your submission finalized.
 
