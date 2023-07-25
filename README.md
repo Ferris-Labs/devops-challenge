@@ -1,51 +1,6 @@
 # ferris labs - DevOps-challenge
 
-### How would you solve the following DevOps challenge?
-
-## Context & Background
-
-The ferrisDX platform consists of the following technical FOSS components engineered to work as an
-**event-based micro-services integration platform** on top of any Kubernetes or dedicated compute
-infrastructure. It is designed to be **cloud native** and abstracted away from hyperscaler propietary
-services. It uses the following components under the hood:
-
-* ArgoCD
-* Consul
-* Kafka
-* Minio
-* PostGreSQL
-* Vault
-* Keycloak
-* Elastic
-* Flask
-
-As optional components depending on the use case of the clients the following application level containers
-can be added to the platform - either by being deployed alongside in the ferris K8S namespace or by utilzing
-and connecting to existing client implementations:
-
-* Theia based IDEs
-* JupyterHub Notebook Server
-* Presto or Trino SQL abstraction layers
-* any DB flavor (RDBMS, DocDBs, GraphDBs, other)
-
-It utilises the following set of open standards throughout the components and every addition or change
-needs to adhere to these standards or impose an additional (equally open and universal) standard that
-does not confilct with the existing ones.
-
-* OpenAPI - REST and Async (for all services)
-* Cloud Events (for all event wrappings)
-* S3 (for any file abstraction)
-* JDBC / SQLAlchemy for any DB abstraction
-
-## DevOps Challenge Objective
-
-We have a dedicated set of Helm charts and Moustache scripts to deploy a new instance of ferrisDX based on a client
-and base infrastructure specific config file. This instance specific configuration is generated via a wizard based
-process and results in a structured JSON message on an internal ferris event kafka topic. A set of dedicated Helm
-charts then uses this config / setup message and deploys the new ferrisDX instance to a cloud provider of choice
-(currently GCP, Azure, Redhat and T-Systems)
-
-### Design Goal
+## Design Goal
 
 Think of an approach that allows us to monitor and account for infrastructure usage. Automate the *Usage Tracking*
 for the following scenarios in a generic and re-usable fashion:
@@ -73,14 +28,25 @@ The new approach to "Usage Tracking" can:
 * extend an existing standard
 * define a new skeleton for the currently known aspects
 
-## Challenge Response
+## Solution
 
-At a minimum write your response as **response.md** to this repository. You additionally can:
-* cross-reference any links to documentation / standards / components you would use / apply
-* include schematics for how you would envision such a "usage tracking" to work
-* include a rough breakdown of which elements you would deliver when along 2 week sprints
-* use our second interview as an opportunity to discuss and clarify any questions
+Please check the usage_tracking_diagram.png as it explains my idea. 
 
-Please use a PR to submit your response at your convenience within the next 7 business days and
-drop us a quick mail at [tom@ferrislabs.net](mailto://tom@ferrislabs.net) as soon as you consider your submission finalized.
+As the ELK stack is in use I think that we could use it also for the metrics. It should also report the resource limits of the workloads. If not, we could take this from Kafka or any other place. This is needed for the calculation of the used / unused capacity.
 
+All project entities will be created inside the K8S as separate namespaces. I assume that this is the current configuration, if not we should do this. This is going to give us isolation and a way to calculate consumed resources.
+
+### Data flow
+
+1. Elastic agent will collect for us the needed statistics and will send them to the ELK cluster.
+
+1. usage-trckng service - The purpose of this new service is to pull information from multiple places (ELK, GCP API) in order to do the needed calculations. From ELK it will calculate the resources that were consumed filtered by the name of the namespace. By doing this, we will know the usage ratio of every entity. Based on this usage ratio, we can calculate the price as we will take the total amount from GCP API. In the end, this information can be written in PSQL DB.
+
+The service might be a Kubernetes CronJob if we do not need this information in real-time.
+
+1. The data that has just been written in the PSQL can be consumed by the ferris-ui service and shown to the users.
+
+### Links
+
+* https://www.elastic.co/downloads/elastic-agent
+* https://www.elastic.co/guide/en/observability/current/kubernetes-pod-metrics.html
